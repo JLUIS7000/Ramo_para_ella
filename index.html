@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Girasoles para mi Novia</title>
+    <style>
+        /* Fondo de noche estrellada */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            /* Degradado de azul oscuro a casi negro */
+            background: linear-gradient(to bottom, #0f172a, #1e293b, #0f172a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            font-family: 'Verdana', sans-serif;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Estilo para el nombre */
+        #mensaje {
+            position: absolute;
+            z-index: 10;
+            text-align: center;
+            width: 100%;
+            top: 15%;
+            opacity: 0;
+            /* El nombre aparecerá a los 5 segundos */
+            animation: aparecer 3s forwards 4s; 
+        }
+
+        h1 {
+            font-size: 4rem;
+            color: #FFD700; /* Color amarillo girasol */
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 2px 2px 5px rgba(0,0,0,0.8);
+            margin: 0;
+        }
+
+        p {
+            font-size: 1.5rem;
+            color: #f8fafc;
+            margin-top: 10px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        @keyframes aparecer {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="canvas-container">
+    <canvas id="miCanvas"></canvas>
+    
+    <div id="mensaje">
+        <h1>EMELIN</h1> 
+        <p>Eres la luz en mis noches estrelladas</p>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('miCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Ajustar el canvas a toda la pantalla
+    function ajustarCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', ajustarCanvas);
+    ajustarCanvas();
+
+    // --- SISTEMA DE ESTRELLAS FUGACES ---
+    const estrellas = [];
+    for(let i=0; i<15; i++){
+        estrellas.push({
+            x: Math.random() * canvas.width * 1.5,
+            y: Math.random() * canvas.height - canvas.height,
+            longitud: Math.random() * 60 + 20,
+            velocidad: Math.random() * 8 + 4,
+            grosor: Math.random() * 1.5 + 0.5
+        });
+    }
+
+    function dibujarEstrellas() {
+        // Borramos el frame anterior dejando una estela suave
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.lineCap = 'round';
+        
+        for(let i=0; i<estrellas.length; i++){
+            let e = estrellas[i];
+            ctx.lineWidth = e.grosor;
+            ctx.beginPath();
+            ctx.moveTo(e.x, e.y);
+            // Inclinación de la estrella fugaz (de arriba izquierda a abajo derecha)
+            ctx.lineTo(e.x - e.longitud, e.y - e.longitud * 0.5); 
+            ctx.stroke();
+            
+            // Movimiento
+            e.x -= e.velocidad;
+            e.y += e.velocidad * 0.5;
+            
+            // Si salen de la pantalla, vuelven a aparecer arriba
+            if(e.x < -100 || e.y > canvas.height + 100) {
+                e.x = Math.random() * canvas.width * 1.5 + 100;
+                e.y = Math.random() * canvas.height - canvas.height;
+            }
+        }
+    }
+
+    // --- SISTEMA DE GIRASOLES ---
+    // Posiciones de los 5 girasoles simulando la imagen
+    const girasoles = [
+        { x: 0, y: -130, escala: 1 },     // Centro arriba
+        { x: -70, y: -40, escala: 0.85 }, // Izquierda medio
+        { x: 70, y: -30, escala: 0.9 },   // Derecha medio
+        { x: -40, y: 70, escala: 0.8 },   // Izquierda abajo
+        { x: 60, y: 50, escala: 0.85 }    // Derecha abajo
+    ];
+
+    let progreso = 0; // Controla la animación de crecimiento
+
+    function dibujarFlor(x, y, escala, animacion) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(escala, escala);
+
+        // Pétalos amarillos
+        const numPetalos = 18;
+        ctx.fillStyle = '#FFD700'; // Amarillo brillante
+        ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+        ctx.shadowBlur = 10;
+        
+        for(let i=0; i<numPetalos; i++){
+            ctx.save();
+            ctx.rotate((Math.PI * 2 / numPetalos) * i + animacion); 
+            ctx.beginPath();
+            // Forma de pétalo
+            ctx.ellipse(0, -35 * animacion, 12 * animacion, 45 * animacion, 0, 0, Math.PI*2);
+            ctx.fill();
+            // Contorno ligero del pétalo
+            ctx.strokeStyle = '#DAA520';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Centro del girasol (Semillas oscuras)
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(0, 0, 25 * animacion, 0, Math.PI*2);
+        ctx.fillStyle = '#3e2723'; // Marrón muy oscuro
+        ctx.fill();
+        
+        // Puntos en el centro para darle textura
+        if (animacion > 0.8) {
+            ctx.fillStyle = '#5d4037';
+            for(let j=0; j<30; j++){
+                let ang = Math.random() * Math.PI * 2;
+                let rad = Math.random() * 20;
+                ctx.beginPath();
+                ctx.arc(Math.cos(ang)*rad, Math.sin(ang)*rad, 1.5, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+        ctx.restore();
+    }
+
+    function dibujarRamo() {
+        const centroX = canvas.width / 2;
+        const centroY = canvas.height / 2 + 50; // Ajustado un poco hacia abajo
+
+        // Dibujar Tallos y hojas de la base (verdes)
+        ctx.strokeStyle = '#4caf50';
+        ctx.lineWidth = 10;
+        ctx.lineCap = 'round';
+
+        girasoles.forEach(g => {
+            ctx.beginPath();
+            // Nacen desde la parte inferior de la pantalla
+            ctx.moveTo(centroX, canvas.height + 50);
+            ctx.quadraticCurveTo(centroX + g.x/2, centroY + g.y/2 + 50, centroX + g.x, centroY + g.y);
+            ctx.stroke();
+        });
+
+        // Hojas en la base
+        ctx.fillStyle = '#388e3c';
+        ctx.beginPath();
+        ctx.ellipse(centroX - 50, canvas.height - 50, 40, 80, Math.PI/4, 0, Math.PI*2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(centroX + 50, canvas.height - 30, 30, 70, -Math.PI/4, 0, Math.PI*2);
+        ctx.fill();
+
+        // Dibujar las flores girasol
+        girasoles.forEach((g, index) => {
+            // Hacemos que nazcan con un ligero retraso entre ellas
+            let progresoIndividual = Math.max(0, Math.min(1, progreso - (index * 0.1)));
+            if(progresoIndividual > 0) {
+                dibujarFlor(centroX + g.x, centroY + g.y, g.escala, progresoIndividual);
+            }
+        });
+
+        // Aumentar el tamaño progresivamente
+        if(progreso < 2) {
+            progreso += 0.003;
+        }
+    }
+
+    // Bucle principal de la animación
+    function animar() {
+        dibujarEstrellas();
+        dibujarRamo();
+        requestAnimationFrame(animar);
+    }
+
+    // Iniciar
+    animar();
+</script>
+</body>
+</html>
